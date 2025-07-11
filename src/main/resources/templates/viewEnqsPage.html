@@ -1,103 +1,124 @@
 <!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap demo</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
-  </head>
-  <body>
-    
-	<div class="container mt-4">
-		<ul class="nav mb-4">
-			<li class="nav-item">
-				<a class="nav-link active" aria-current="page" href="dashboard">View Dashboard</a>
-			</li>
-			<li class="nav-item">
-				<a class="nav-link" href="enquiry">Add Enquiry</a>
-			</li>
-			<li class="nav-item">
-				<a class="nav-link" href="view-enquiries">View Enquiries</a>
-			</li>
-			<li class="nav-item">
-				<a class="nav-link" href="logout">Logout</a>
-			</li>
-		</ul>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>View Enquiries</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
 
-		<hr/>
+<div class="container mt-4">
 
-		<h3 class="mb-4">View Enquiries Here</h3>
-		
-		<!-- Filter Form -->
-		<form th:action="@{/filter-enqs}" th:object="${viewEnqsFilterRequest}" method="post" class="mb-4">
-			<div class="row g-3 align-items-center">
-				<div class="col-md-3">
-					<label class="form-label small">Class Mode:</label>
-					<select th:field="*{classMode}" class="form-select form-select-sm" >
-						<option value = ""> --Select- </option>
-						<option value="Online">Online</option>
-						<option value="Classroom">Classroom</option>
-					</select>
-				</div>
+  <!-- Navigation -->
+  <ul class="nav mb-4">
+    <li class="nav-item"><a class="nav-link active" href="dashboard">View Dashboard</a></li>
+    <li class="nav-item"><a class="nav-link" href="enquiry">Add Enquiry</a></li>
+    <li class="nav-item"><a class="nav-link" href="view-enquiries">View Enquiries</a></li>
+	<!-- Update the values by Vinay Changes -->
+			  	  <li class="nav-item">
+			  	  	    <a class="nav-link" href="update-enquiries">Update Enquiries</a>
+			  	  	  </li>
+			  		  <!-- Update the values by Vinay Changes -->
+					  
+    <li class="nav-item"><a class="nav-link" href="logout">Logout</a></li>
+  </ul>
 
-				<div class="col-md-3">
-					<label class="form-label small">Course Name:</label>
-					<select th:field="*{courseName}" class="form-select form-select-sm" >
-						<option value = ""> --Select- </option>
-						<option value="Java">Java</option>
-						<option value="Python">Python</option>
-						<option value="DevOps">DevOps</option>
-						<option value="AWS">AWS</option>
-					</select>
-				</div>
+  <hr/>
+  <h3 class="mb-4">View Enquiries Here</h3>
 
-				<div class="col-md-3">
-					<label class="form-label small">Enquiry Status:</label>
-					<select th:field="*{enqStatus}" class="form-select form-select-sm" >
-						<option value = ""> --Select- </option>
-						<option value="Open">Open</option>
-						<option value="Enrolled">Enrolled</option>
-						<option value="Lost">Lost</option>
-					</select>
-				</div>
+  <!-- Filter Form (optional) -->
+  <form th:action="@{/filter-enqs}" th:object="${viewEnqsFilterRequest}" method="post" class="mb-4">
+    <div class="row g-3 align-items-center">
+      <div class="col-md-3">
+        <label class="form-label small">Class Mode:</label>
+        <select th:field="*{classMode}" class="form-select form-select-sm">
+          <option value="">--Select--</option>
+          <option value="Online">Online</option>
+          <option value="Classroom">Classroom</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">Course Name:</label>
+        <select th:field="*{courseName}" class="form-select form-select-sm">
+          <option value="">--Select--</option>
+          <option value="Java">Java</option>
+          <option value="Python">Python</option>
+          <option value="DevOps">DevOps</option>
+          <option value="AWS">AWS</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small">Enquiry Status:</label>
+        <select th:field="*{enqStatus}" class="form-select form-select-sm">
+          <option value="">--Select--</option>
+          <option value="Open">Open</option>
+          <option value="Enrolled">Enrolled</option>
+          <option value="Lost">Lost</option>
+        </select>
+      </div>
+      <div class="col-md-2 mt-4">
+        <input type="submit" value="Search" class="btn btn-primary btn-sm mt-1"/>
+      </div>
+    </div>
+  </form>
 
-				<div class="col-md-2 mt-4">
-					<input type="submit" value="Search" class="btn btn-primary btn-sm mt-1" />
-				</div>
-			</div>
-		</form>
+  <form th:action="@{/submit-selected-enquiries}" th:object="${enquiryWrapper}" method="post">
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Select</th>
+		  <th>S.No</th>
+          <th>Student Name</th>
+          <th>Course Name</th>
+          <th>Class Mode</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="enq, iter : *{enquiryList}">
+          <td>
+            <input type="checkbox" th:field="*{enquiryList[__${iter.index}__].selected}" />
+          </td>
 
-		<!-- Results Table -->
-		<div class="table-responsive">
-			<table class="table table-bordered table-hover">
-				<thead class="table-dark">
-					<tr>
-						<th>S.No</th>
-						<th>Name</th>
-						<th>Course</th>
-						<th>Mode</th>
-						<th>Phno</th>
-						<th>Status</th>
-						<th>Edit</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr th:each="enq, loopCounter: ${enquiries}">
-						<td th:text="${loopCounter.index+1}"></td>
-						<td th:text="${enq.stuName}"></td>
-						<td th:text="${enq.courseName}"></td>
-						<td th:text="${enq.classMode}"></td>
-						<td th:text="${enq.studentPhno}"></td>
-						<td th:text="${enq.enqStatus}"></td>
-						<td>
-							<a href="#">Edit</a>
-						</td>
-					</tr>
-				</tbody>
-			</table>
-		</div>
-	</div>
+          <!-- BIND all necessary fields via hidden inputs -->
+		  <td>
+		       <span th:text="*{enquiryList[__${iter.index}__].sNo}"></span>
+		       <input type="hidden" th:field="*{enquiryList[__${iter.index}__].sNo}" />
+		     </td>
+			 
+          <td>
+            <span th:text="*{enquiryList[__${iter.index}__].stuName}"></span>
+            <input type="hidden" th:field="*{enquiryList[__${iter.index}__].stuName}" />
+          </td>
+          <td>
+            <span th:text="*{enquiryList[__${iter.index}__].courseName}"></span>
+            <input type="hidden" th:field="*{enquiryList[__${iter.index}__].courseName}" />
+          </td>
+		  <td>
+		    <select th:field="*{enquiryList[__${iter.index}__].classMode}" class="form-control">
+		      <option value="Online">Online</option>
+		      <option value="Classroom">Classroom</option>
+		    </select>
+		  </td>
+          <td>
+            <span th:text="*{enquiryList[__${iter.index}__].enqStatus}"></span>
+            <input type="hidden" th:field="*{enquiryList[__${iter.index}__].enqStatus}" />
+          </td>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js" integrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q" crossorigin="anonymous"></script>
-  </body>
+          <!-- Include ID (important for later DB operations) -->
+          <input type="hidden" th:field="*{enquiryList[__${iter.index}__].enqId}" />
+        </tr>
+      </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Submit Selected</button>
+  </form>
+
+
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
 </html>
