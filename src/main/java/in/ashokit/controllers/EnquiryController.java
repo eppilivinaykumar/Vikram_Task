@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.fasterxml.jackson.annotation.JsonCreator.Mode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -100,6 +101,17 @@ public class EnquiryController {
 		
 		return "enquiryForm";
 		
+		
+	}
+	
+	
+	@GetMapping("/editEnq")
+	public String editEnquiry(@RequestParam("enqId") Integer enqId,Model model) {
+		
+		Enquiry enquiry = enquiryService.getEnquiryById(enqId);
+		model.addAttribute("enq", enquiry);
+		
+		return "enquiryForm";
 		
 	}
 	

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>View Enquiries</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Add jQuery library -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 
@@ -15,19 +17,21 @@
     <li class="nav-item"><a class="nav-link active" href="dashboard">View Dashboard</a></li>
     <li class="nav-item"><a class="nav-link" href="enquiry">Add Enquiry</a></li>
     <li class="nav-item"><a class="nav-link" href="view-enquiries">View Enquiries</a></li>
-	<!-- Update the values by Vinay Changes -->
-			  	  <li class="nav-item">
-			  	  	    <a class="nav-link" href="update-enquiries">Update Enquiries</a>
-			  	  	  </li>
-			  		  <!-- Update the values by Vinay Changes -->
-					  
+    <!-- Update the values by Vinay Changes -->
+    <li class="nav-item">
+      <a class="nav-link" href="update-enquiries">Update Enquiries</a>
+    </li>
+    <!-- Update the values by Vinay Changes -->
     <li class="nav-item"><a class="nav-link" href="logout">Logout</a></li>
   </ul>
 
   <hr/>
   <h3 class="mb-4">View Enquiries Here</h3>
+  
+  <!-- Added div to display the Hello message -->
+  <div id="helloMessage" class="alert alert-info mb-4" style="display:none;"></div>
 
-  <!-- Filter Form (optional) -->
+  <!-- Filter Form (optional) 
   <form th:action="@{/filter-enqs}" th:object="${viewEnqsFilterRequest}" method="post" class="mb-4">
     <div class="row g-3 align-items-center">
       <div class="col-md-3">
@@ -62,17 +66,18 @@
       </div>
     </div>
   </form>
-
+-->
   <form th:action="@{/submit-selected-enquiries}" th:object="${enquiryWrapper}" method="post">
     <table class="table table-bordered">
       <thead>
         <tr>
           <th>Select</th>
-		  <th>S.No</th>
+          <th>S.No</th>
           <th>Student Name</th>
           <th>Course Name</th>
           <th>Class Mode</th>
           <th>Status</th>
+          <th>Edit</th>
         </tr>
       </thead>
       <tbody>
@@ -82,11 +87,11 @@
           </td>
 
           <!-- BIND all necessary fields via hidden inputs -->
-		  <td>
-		       <span th:text="*{enquiryList[__${iter.index}__].sNo}"></span>
-		       <input type="hidden" th:field="*{enquiryList[__${iter.index}__].sNo}" />
-		     </td>
-			 
+          <td>
+               <span th:text="*{enquiryList[__${iter.index}__].sNo}"></span>
+               <input type="hidden" th:field="*{enquiryList[__${iter.index}__].sNo}" />
+             </td>
+             
           <td>
             <span th:text="*{enquiryList[__${iter.index}__].stuName}"></span>
             <input type="hidden" th:field="*{enquiryList[__${iter.index}__].stuName}" />
@@ -95,15 +100,18 @@
             <span th:text="*{enquiryList[__${iter.index}__].courseName}"></span>
             <input type="hidden" th:field="*{enquiryList[__${iter.index}__].courseName}" />
           </td>
-		  <td>
-		    <select th:field="*{enquiryList[__${iter.index}__].classMode}" class="form-control">
-		      <option value="Online">Online</option>
-		      <option value="Classroom">Classroom</option>
-		    </select>
-		  </td>
+          <td>
+            <select th:field="*{enquiryList[__${iter.index}__].classMode}" class="form-control">
+              <option value="Online">Online</option>
+              <option value="Classroom">Classroom</option>
+            </select>
+          </td>
           <td>
             <span th:text="*{enquiryList[__${iter.index}__].enqStatus}"></span>
             <input type="hidden" th:field="*{enquiryList[__${iter.index}__].enqStatus}" />
+          </td>
+          <td>
+            <a th:href="@{'/editEnq?enqId='+ ${enq.enqId}}">Edit</a>
           </td>
 
           <!-- Include ID (important for later DB operations) -->
@@ -115,10 +123,136 @@
     <button type="submit" class="btn btn-primary">Submit Selected</button>
   </form>
 
-
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+$(document).ready(function() {
+  // Function to get currently selected enquiry IDs
+  function getSelectedEnquiries() {
+    const selected = [];
+    $('table tbody input[type="checkbox"]:checked').each(function() {
+      const enqId = $(this).closest('tr').find('input[name*="enqId"]').val();
+      selected.push(enqId);
+    });
+    return selected;
+  }
+
+  // Function to restore checkbox selections
+  function restoreSelections(selectedEnqIds) {
+    $('table tbody input[name*="enqId"]').each(function() {
+      const enqId = $(this).val();
+      if (selectedEnqIds.includes(enqId)) {
+        $(this).closest('tr').find('input[type="checkbox"]').prop('checked', true);
+      }
+    });
+  }
+
+  // Function to update the table with new data
+  function updateTable(enquiries) {
+    // Get current selections before updating
+    const selectedEnqIds = getSelectedEnquiries();
+    const tbody = $('table tbody');
+    tbody.empty(); // Clear existing rows
+    
+    enquiries.forEach(function(enquiry) {
+      const row = `
+        <tr>
+          <td><input type="checkbox" name="enquiryList[${enquiry.sNo-1}].selected" /></td>
+          <td>
+            <span>${enquiry.sNo}</span>
+            <input type="hidden" name="enquiryList[${enquiry.sNo-1}].sNo" value="${enquiry.sNo}" />
+          </td>
+          <td>
+            <span>${enquiry.stuName}</span>
+            <input type="hidden" name="enquiryList[${enquiry.sNo-1}].stuName" value="${enquiry.stuName}" />
+          </td>
+          <td>
+            <span>${enquiry.courseName}</span>
+            <input type="hidden" name="enquiryList[${enquiry.sNo-1}].courseName" value="${enquiry.courseName}" />
+          </td>
+          <td>
+            <select class="form-control" name="enquiryList[${enquiry.sNo-1}].classMode">
+              <option value="Online" ${enquiry.classMode === 'Online' ? 'selected' : ''}>Online</option>
+              <option value="Classroom" ${enquiry.classMode === 'Classroom' ? 'selected' : ''}>Classroom</option>
+            </select>
+          </td>
+          <td>
+            <span>${enquiry.enqStatus}</span>
+            <input type="hidden" name="enquiryList[${enquiry.sNo-1}].enqStatus" value="${enquiry.enqStatus}" />
+          </td>
+          <td>
+            <a href="/editEnq?enqId=${enquiry.enqId}">Edit</a>
+          </td>
+          <input type="hidden" name="enquiryList[${enquiry.sNo-1}].enqId" value="${enquiry.enqId}" />
+        </tr>
+      `;
+      tbody.append(row);
+    });
+    
+    // Restore selections after table is updated
+    restoreSelections(selectedEnqIds);
+  }
+
+  // Function to check if data has changed
+  function hasDataChanged(newData, oldData) {
+    if (!oldData || newData.enquiryList.length !== oldData.enquiryList.length) {
+      return true;
+    }
+    
+    return newData.enquiryList.some((enquiry, index) => {
+      const oldEnquiry = oldData.enquiryList[index];
+      return enquiry.sNo !== oldEnquiry.sNo ||
+             enquiry.stuName !== oldEnquiry.stuName ||
+             enquiry.courseName !== oldEnquiry.courseName ||
+             enquiry.classMode !== oldEnquiry.classMode ||
+             enquiry.enqStatus !== oldEnquiry.enqStatus ||
+             enquiry.enqId !== oldEnquiry.enqId;
+    });
+  }
+
+  // Store the last fetched data
+  let lastFetchedData = null;
+
+  // Function to fetch enquiry data from API
+  function fetchEnquiryData() {
+    $.ajax({
+      url: '/api/enquiriesJSON',
+      type: 'GET',
+      dataType: 'json',
+      success: function(data) {
+        console.log("=== Enquiry Data Fetched ===");
+        
+        if (data.enquiryList && data.enquiryList.length > 0) {
+          console.log("Total Enquiries:", data.enquiryList.length);
+          
+          // Check if data has changed
+          if (hasDataChanged(data, lastFetchedData)) {
+            console.log("Data has changed - updating table");
+            updateTable(data.enquiryList);
+            lastFetchedData = data;
+          } else {
+            console.log("No changes in data");
+          }
+        } else {
+          console.log("No enquiries found");
+          $('table tbody').empty();
+        }
+      },
+      error: function(xhr, status, error) {
+        console.error("Error fetching enquiries:", error);
+        $('#helloMessage').text("Error fetching data").removeClass('alert-info')
+                         .addClass('alert-danger').fadeIn().delay(2000).fadeOut();
+      }
+    });
+  }
+
+  // Execute immediately on page load
+  fetchEnquiryData();
+  
+  // Then execute every 15 seconds
+  setInterval(fetchEnquiryData, 15000);
+});
+</script>
 </body>
 </html>
